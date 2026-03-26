@@ -5,26 +5,24 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
-import keepAlive from "./utils/keepAlive.js";
+
 dotenv.config();
 
 const app = express();
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://skillbridgefrontend.netlify.app"  // replace with your actual Netlify URL
-];
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+
+// ✅ CORS FIX — must be before all routes
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://skillbridgefronted.netlify.app");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
 app.use(express.json());
 
 connectDB();
@@ -37,10 +35,8 @@ app.get("/", (req, res) => {
   res.send("SkillBridge API Running");
 });
 
-// THIS IS THE CRITICAL PART
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
-keepAlive();
