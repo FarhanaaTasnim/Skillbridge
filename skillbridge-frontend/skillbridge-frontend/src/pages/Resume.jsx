@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import API_URL from "../config";
 const Resume = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ const Resume = () => {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/resume/upload", {
+      const res = await fetch(`${API_URL}/api/resume/upload`, {
         method: "POST",
         body: formData,
       });

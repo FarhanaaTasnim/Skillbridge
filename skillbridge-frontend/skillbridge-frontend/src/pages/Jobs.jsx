@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import API_URL from "../config";
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ const Jobs = () => {
 
         const skills = JSON.parse(skillsRaw);
 
-        const res = await fetch("http://localhost:5000/api/jobs/remote", {
+        const res = await fetch(`${API_URL}/api/jobs/remote`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ skills }),
