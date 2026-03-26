@@ -9,13 +9,21 @@ import keepAlive from "./utils/keepAlive.js";
 dotenv.config();
 
 const app = express();
-
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://skillbridgefrontend.netlify.app"  // replace with your actual Netlify URL
+];
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    process.env.FRONTEND_URL
-  ],
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
 
