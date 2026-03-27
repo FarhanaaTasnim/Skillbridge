@@ -12,7 +12,7 @@ const app = express();
 
 // ✅ CORS FIX — must be before all routes
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://skillbridgefronted.netlify.app");
+  res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL);
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   
@@ -22,7 +22,6 @@ app.use((req, res, next) => {
   
   next();
 });
-
 app.use(express.json());
 
 connectDB();
