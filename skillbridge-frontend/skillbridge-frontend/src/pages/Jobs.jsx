@@ -26,7 +26,12 @@ const Jobs = () => {
         });
 
         const data = await res.json();
-        setJobs(data);
+        if (Array.isArray(data)) {
+  setJobs(data);
+} else {
+  console.error("Unexpected response:", data);
+  setJobs([]);
+}
       } catch (error) {
         console.error(error);
       }
