@@ -12,14 +12,24 @@ const app = express();
 
 // ✅ CORS FIX — must be before all routes
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL);
+  const origin = req.headers.origin;
+  
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://skillbridge-frontend-psi.vercel.app"
+  ];
+
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  
+
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
-  
+
   next();
 });
 app.use(express.json());
