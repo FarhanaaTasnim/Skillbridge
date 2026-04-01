@@ -1,43 +1,80 @@
 import axios from "axios";
 
 const normalize = (str) => {
+  if (!str) return "";
   return str
     .toLowerCase()
     .replace(/\s+/g, "")
     .replace(/\./g, "")
-    .replace("js", "");
+    .replace(/\-/g, "")
+    .replace("javascript", "js")
+    .replace("nodejs", "node")
+    .replace("reactjs", "react");
+};
+
+const calculateMatch = (userSkills, tags) => {
+  if (!tags || tags.length === 0) {
+    return { matchScore: 0, missingSkills: tags || [] };
+  }
+
+  const normalizedUserSkills = userSkills.map(s => normalize(s));
+
+  const matched = tags.filter(tag =>
+    normalizedUserSkills.some(skill => {
+      const normalizedTag = normalize(tag);
+      return normalizedTag.includes(skill) || skill.includes(normalizedTag);
+    })
+  );
+
+  const missingSkills = tags.filter(tag =>
+    !normalizedUserSkills.some(skill => {
+      const normalizedTag = normalize(tag);
+      return normalizedTag.includes(skill) || skill.includes(normalizedTag);
+    })
+  );
+
+  const matchScore = Math.round((matched.length / tags.length) * 100);
+
+  return { matchScore, missingSkills };
 };
 
 export const fetchRemoteJobs = async (req, res) => {
   try {
     const userSkills = req.body.skills || [];
 
-    // Try Jobicy first
+    if (userSkills.length === 0) {
+      return res.status(400).json({ message: "No skills provided" });
+    }
+
     let jobs = [];
 
+    // Try Jobicy
     try {
-      const response = await axios.get("https://jobicy.com/api/v2/remote-jobs?count=50", {
-        headers: { "User-Agent": "Mozilla/5.0" },
-        timeout: 10000
-      });
+      const response = await axios.get(
+        "https://jobicy.com/api/v2/remote-jobs?count=50",
+        {
+          headers: { "User-Agent": "Mozilla/5.0" },
+          timeout: 10000
+        }
+      );
+
+      console.log("Jobicy response keys:", Object.keys(response.data));
 
       if (response.data && Array.isArray(response.data.jobs)) {
         jobs = response.data.jobs.map(job => {
-          const tags = Array.isArray(job.jobTags) ? job.jobTags : [];
+          // Jobicy uses jobTags as a string sometimes, handle both
+          let tags = [];
+          if (Array.isArray(job.jobTags)) {
+            tags = job.jobTags;
+          } else if (typeof job.jobTags === "string") {
+            tags = job.jobTags.split(",").map(t => t.trim());
+          } else if (Array.isArray(job.tags)) {
+            tags = job.tags;
+          }
 
-          const normalizedUserSkills = userSkills.map(s => normalize(s));
+          console.log("Job tags for", job.jobTitle, ":", tags);
 
-          const matched = tags.filter(tag =>
-            normalizedUserSkills.some(skill => normalize(tag).includes(skill))
-          );
-
-          const missingSkills = tags.filter(tag =>
-            !normalizedUserSkills.some(skill => normalize(tag).includes(skill))
-          );
-
-          const matchScore = tags.length > 0
-            ? Math.round((matched.length / tags.length) * 100)
-            : 0;
+          const { matchScore, missingSkills } = calculateMatch(userSkills, tags);
 
           return {
             title: job.jobTitle || "No Title",
@@ -51,34 +88,34 @@ export const fetchRemoteJobs = async (req, res) => {
         });
       }
     } catch (err) {
-      console.log("Jobicy failed, trying Arbeitnow...");
+      console.log("Jobicy failed:", err.message);
     }
 
-    // Fallback to Arbeitnow if Jobicy fails
+    // Fallback to Arbeitnow
     if (jobs.length === 0) {
       try {
-        const response = await axios.get("https://www.arbeitnow.com/api/job-board-api", {
-          headers: { "User-Agent": "Mozilla/5.0" },
-          timeout: 10000
-        });
+        const response = await axios.get(
+          "https://www.arbeitnow.com/api/job-board-api",
+          {
+            headers: { "User-Agent": "Mozilla/5.0" },
+            timeout: 10000
+          }
+        );
+
+        console.log("Arbeitnow response keys:", Object.keys(response.data));
 
         if (response.data && Array.isArray(response.data.data)) {
           jobs = response.data.data.slice(0, 50).map(job => {
-            const tags = Array.isArray(job.tags) ? job.tags : [];
+            let tags = [];
+            if (Array.isArray(job.tags)) {
+              tags = job.tags;
+            } else if (typeof job.tags === "string") {
+              tags = job.tags.split(",").map(t => t.trim());
+            }
 
-            const normalizedUserSkills = userSkills.map(s => normalize(s));
+            console.log("Job tags for", job.title, ":", tags);
 
-            const matched = tags.filter(tag =>
-              normalizedUserSkills.some(skill => normalize(tag).includes(skill))
-            );
-
-            const missingSkills = tags.filter(tag =>
-              !normalizedUserSkills.some(skill => normalize(tag).includes(skill))
-            );
-
-            const matchScore = tags.length > 0
-              ? Math.round((matched.length / tags.length) * 100)
-              : 0;
+            const { matchScore, missingSkills } = calculateMatch(userSkills, tags);
 
             return {
               title: job.title || "No Title",
@@ -92,7 +129,7 @@ export const fetchRemoteJobs = async (req, res) => {
           });
         }
       } catch (err) {
-        console.log("Arbeitnow also failed:", err.message);
+        console.log("Arbeitnow failed:", err.message);
       }
     }
 
@@ -100,7 +137,7 @@ export const fetchRemoteJobs = async (req, res) => {
       return res.status(500).json({ message: "All job APIs failed" });
     }
 
-    // Sort by best match
+    // Sort by best match first
     jobs.sort((a, b) => b.matchScore - a.matchScore);
 
     res.json(jobs);

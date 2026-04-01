@@ -7,40 +7,24 @@ const Jobs = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const skillsRaw = localStorage.getItem("skills");
+  const fetchJobs = async () => {
+    const skillsRaw = localStorage.getItem("skills");
 
-        if (!skillsRaw || skillsRaw === "undefined") {
-          alert("Please upload your resume first.");
-          navigate("/resume");
-          return;
-        }
+    if (!skillsRaw || skillsRaw === "undefined" || skillsRaw === "null") {
+      navigate("/resume");
+      return;
+    }
 
-        const skills = JSON.parse(skillsRaw);
+    const skills = JSON.parse(skillsRaw);
 
-        const res = await fetch(`${API_URL}/api/jobs/remote`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ skills }),
-        });
+    if (!Array.isArray(skills) || skills.length === 0) {
+      navigate("/resume");
+      return;
+    }
 
-        const data = await res.json();
-        if (Array.isArray(data)) {
-  setJobs(data);
-} else {
-  console.error("Unexpected response:", data);
-  setJobs([]);
-}
-      } catch (error) {
-        console.error(error);
-      }
-
-      setLoading(false);
-    };
-
-    fetchJobs();
-  }, []);
+    // proceed to fetch jobs
+  };
+}, []);
 
   if (loading) {
     return (
