@@ -49,7 +49,7 @@ export const uploadResume = async (req, res) => {
 
     res.json({
       message: "Resume processed successfully",
-      skills:detectedSkills
+      skills: detectedSkills.map(s => s.toLowerCase())
     });
 
   } catch (error) {
