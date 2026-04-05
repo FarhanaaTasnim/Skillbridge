@@ -74,7 +74,7 @@ export const fetchRemoteJobs = async (req, res) => {
           }
 
           console.log("Job tags for", job.jobTitle, ":", tags);
-
+          console.log("Tags:", tags, "| User Skills:", userSkills);
           const {matchScore, missingSkills} = calculateMatch(userSkills, tags);
 
           return {
@@ -163,4 +163,6 @@ export const fetchRemoteJobs = async (req, res) => {
   });
 
   clearTimeout(timeoutId);
+
+  
 };
