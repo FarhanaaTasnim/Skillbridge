@@ -6,24 +6,58 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
+useEffect(() => {
   const fetchJobs = async () => {
-    const skillsRaw = localStorage.getItem("skills");
+    try {
+      const skillsRaw = localStorage.getItem("skills");
 
-    if (!skillsRaw || skillsRaw === "undefined" || skillsRaw === "null") {
-      navigate("/resume");
-      return;
+      if (!skillsRaw || skillsRaw === "undefined" || skillsRaw === "null") {
+        navigate("/resume");
+        return;
+      }
+
+      let skills;
+      try {
+        skills = JSON.parse(skillsRaw);
+      } catch {
+        navigate("/resume");
+        return;
+      }
+
+      if (!Array.isArray(skills) || skills.length === 0) {
+        navigate("/resume");
+        return;
+      }
+
+      console.log("Sending skills:", skills);
+
+      const res = await fetch(`${API_URL}/api/jobs/remote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skills })
+      });
+
+      console.log("Response status:", res.status);
+
+      const data = await res.json();
+
+      console.log("Response data:", data);
+
+      if (Array.isArray(data)) {
+        setJobs(data);
+      } else {
+        setJobs([]);
+      }
+
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setJobs([]);
     }
 
-    const skills = JSON.parse(skillsRaw);
-
-    if (!Array.isArray(skills) || skills.length === 0) {
-      navigate("/resume");
-      return;
-    }
-
-    // proceed to fetch jobs
+    setLoading(false);  // ← THIS IS CRITICAL — must always run
   };
+
+  fetchJobs();
 }, []);
 
   if (loading) {
