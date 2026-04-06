@@ -19,9 +19,23 @@ const skillMatches = (userSkill, jobTag) => {
   return nt.includes(ns) || ns.includes(nt);
 };
 
-const calculateMatch = (userSkills, tags) => {
+const calculateMatch = (userSkills, tags, title = "", description = "") => {
+  // if no tags, try matching against title and description
   if (!tags || tags.length === 0) {
-    return { matchScore: 0, missingSkills: [] };
+    const combinedText = (title + " " + description).toLowerCase();
+    const matched = userSkills.filter(skill =>
+      combinedText.includes(normalize(skill))
+    );
+
+    const matchScore = userSkills.length > 0
+      ? Math.round((matched.length / userSkills.length) * 100)
+      : 0;
+
+    const missingSkills = userSkills.filter(skill =>
+      !combinedText.includes(normalize(skill))
+    );
+
+    return { matchScore, missingSkills };
   }
 
   const matched = tags.filter(tag =>
@@ -91,7 +105,12 @@ export const fetchRemoteJobs = async (req, res) => {
 
           console.log(`Job: ${job.jobTitle} | Tags: ${allTags}`);
 
-          const { matchScore, missingSkills } = calculateMatch(userSkills, allTags);
+          const { matchScore, missingSkills } = calculateMatch(
+  userSkills,
+  allTags,
+  job.title || "",
+  job.description || ""
+);
 
           return {
             title: job.jobTitle || "No Title",
@@ -147,7 +166,12 @@ export const fetchRemoteJobs = async (req, res) => {
 
             console.log(`Job: ${job.title} | Tags: ${allTags}`);
 
-            const { matchScore, missingSkills } = calculateMatch(userSkills, allTags);
+            const { matchScore, missingSkills } = calculateMatch(
+  userSkills,
+  allTags,
+  job.title || "",
+  job.description || ""
+);
 
             return {
               title: job.title || "No Title",

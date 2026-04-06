@@ -166,32 +166,36 @@ const JobCard = ({ job }) => {
           </div>
         </div>
 
-        {job.missingSkills?.length > 0 ? (
-          <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
-              Missing Skills
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {job.missingSkills.slice(0, 4).map((skill, i) => (
-                <span
-                  key={i}
-                  className="text-xs bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 px-2 py-0.5 rounded-full"
-                >
-                  {skill}
-                </span>
-              ))}
-              {job.missingSkills.length > 4 && (
-                <span className="text-xs text-gray-400 dark:text-gray-500 px-1 py-0.5">
-                  +{job.missingSkills.length - 4} more
-                </span>
-              )}
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-green-600 dark:text-green-400 mb-4 font-medium">
-            🎉 You match all required skills!
-          </p>
-        )}
+        {job.matchScore > 0 && job.missingSkills?.length === 0 ? (
+  <p className="text-sm text-green-600 dark:text-green-400 mb-4 font-medium">
+    🎉 You match all required skills!
+  </p>
+) : job.missingSkills?.length > 0 ? (
+  <div className="mb-4">
+    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
+      Missing Skills
+    </p>
+    <div className="flex flex-wrap gap-1">
+      {job.missingSkills.slice(0, 4).map((skill, i) => (
+        <span
+          key={i}
+          className="text-xs bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 px-2 py-0.5 rounded-full"
+        >
+          {skill}
+        </span>
+      ))}
+      {job.missingSkills.length > 4 && (
+        <span className="text-xs text-gray-400 dark:text-gray-500 px-1 py-0.5">
+          +{job.missingSkills.length - 4} more
+        </span>
+      )}
+    </div>
+  </div>
+) : (
+  <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+    No skill tags available for this job
+  </p>
+)}
       </div>
 
       <a
