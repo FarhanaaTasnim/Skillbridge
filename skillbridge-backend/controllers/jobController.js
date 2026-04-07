@@ -1,5 +1,6 @@
 import axios from "axios";
 
+/* ---------------- NORMALIZATION ---------------- */
 const normalize = (str) => {
   if (!str) return "";
   return str
@@ -13,178 +14,258 @@ const normalize = (str) => {
     .replace("expressjs", "express");
 };
 
+/* ---------------- SKILL MATCH ---------------- */
 const skillMatches = (userSkill, jobTag) => {
   const ns = normalize(userSkill);
   const nt = normalize(jobTag);
   return nt.includes(ns) || ns.includes(nt);
 };
 
-const calculateMatch = (userSkills, tags, title = "", description = "") => {
-  // if no tags, try matching against title and description
+/* ---------------- SKILL GROUPS ---------------- */
+const skillGroups = {
+  mern: ["mongo", "express", "react", "node"],
+  frontend: ["react", "vue", "angular", "css", "html"],
+  backend: ["node", "django", "express", "php"],
+  devops: ["docker", "kubernetes", "aws"],
+};
+
+/* ---------------- SKILL EXPANSION ---------------- */
+const expandSkills = (skills) => {
+  let expanded = [...skills];
+
+  skills.forEach((skill) => {
+    const key = normalize(skill);
+    if (skillGroups[key]) {
+      expanded.push(...skillGroups[key]);
+    }
+  });
+
+  return [...new Set(expanded)];
+};
+
+/* ---------------- SKILL WEIGHTS ---------------- */
+const skillWeights = {
+  react: 3,
+  node: 3,
+  js: 3,
+  typescript: 3,
+  python: 3,
+  java: 3,
+
+  mongodb: 2,
+  sql: 2,
+  docker: 2,
+  aws: 2,
+  express: 2,
+  django: 2,
+
+  css: 1,
+  html: 1,
+};
+
+/* ---------------- MATCH CALCULATION ---------------- */
+const calculateMatch = (
+  userSkills,
+  tags,
+  title = "",
+  description = ""
+) => {
+  const expandedUserSkills = expandSkills(userSkills);
+
+  // Fallback when no tags
   if (!tags || tags.length === 0) {
     const combinedText = (title + " " + description).toLowerCase();
-    const matched = userSkills.filter(skill =>
+
+    const matched = expandedUserSkills.filter((skill) =>
       combinedText.includes(normalize(skill))
     );
 
-    const matchScore = userSkills.length > 0
-      ? Math.round((matched.length / userSkills.length) * 100)
+    const matchScore = expandedUserSkills.length
+      ? Math.round((matched.length / expandedUserSkills.length) * 100)
       : 0;
 
-    const missingSkills = userSkills.filter(skill =>
-      !combinedText.includes(normalize(skill))
+    const missingSkills = expandedUserSkills.filter(
+      (skill) => !combinedText.includes(normalize(skill))
     );
 
-    return { matchScore, missingSkills };
+    return {
+      matchScore,
+      missingSkills,
+      matchReason: `Matched ${matched.length} skills from description`,
+      hasRealTags: false,
+    };
   }
 
-  const matched = tags.filter(tag =>
-    userSkills.some(skill => skillMatches(skill, tag))
+  let totalWeight = 0;
+  let matchedWeight = 0;
+  let matchedSkills = [];
+
+  tags.forEach((tag) => {
+    const normalizedTag = normalize(tag);
+    const weight = skillWeights[normalizedTag] || 1;
+
+    totalWeight += weight;
+
+    if (
+      expandedUserSkills.some((skill) => skillMatches(skill, tag))
+    ) {
+      matchedWeight += weight;
+      matchedSkills.push(tag);
+    }
+  });
+
+  const missingSkills = tags.filter(
+    (tag) =>
+      !expandedUserSkills.some((skill) =>
+        skillMatches(skill, tag)
+      )
   );
 
-  const missingSkills = tags.filter(tag =>
-    !userSkills.some(skill => skillMatches(skill, tag))
-  );
+  const matchScore = totalWeight
+    ? Math.round((matchedWeight / totalWeight) * 100)
+    : 0;
 
-  const matchScore = Math.round((matched.length / tags.length) * 100);
-
-  return { matchScore, missingSkills };
+  return {
+    matchScore,
+    missingSkills,
+    matchReason:
+      matchedSkills.length > 0
+        ? `Strong match in ${matchedSkills.slice(0, 3).join(", ")}`
+        : "Low match",
+    skillGapAnalysis: {
+      critical: missingSkills.slice(0, 3),
+      suggestion:
+        missingSkills.length > 0
+          ? `Learn ${missingSkills.slice(0, 2).join(", ")} to improve`
+          : "You're well matched!",
+    },
+    hasRealTags: true,
+  };
 };
 
+/* ---------------- FETCH JOBS ---------------- */
 export const fetchRemoteJobs = async (req, res) => {
   try {
     const userSkills = req.body.skills || [];
 
     if (userSkills.length === 0) {
-      return res.status(400).json({ message: "No skills provided" });
+      return res.status(400).json({
+        message: "No skills provided",
+      });
     }
 
-    console.log("User skills received:", userSkills);
+    console.log("User skills:", userSkills);
 
     let jobs = [];
 
-    // Try Jobicy
+    /* ----------- JOBICY API ----------- */
     try {
       const response = await axios.get(
         "https://jobicy.com/api/v2/remote-jobs?count=50",
         {
           headers: { "User-Agent": "Mozilla/5.0" },
-          timeout: 15000
+          timeout: 15000,
         }
       );
 
-      if (response.data && Array.isArray(response.data.jobs)) {
-        jobs = response.data.jobs.map(job => {
+      if (response.data?.jobs) {
+        jobs = response.data.jobs.map((job) => {
           let tags = [];
 
           if (Array.isArray(job.jobTags)) {
             tags = job.jobTags;
-          } else if (typeof job.jobTags === "string" && job.jobTags) {
-            tags = job.jobTags.split(",").map(t => t.trim()).filter(Boolean);
-          } else if (Array.isArray(job.tags)) {
-            tags = job.tags;
-          } else if (typeof job.tags === "string" && job.tags) {
-            tags = job.tags.split(",").map(t => t.trim()).filter(Boolean);
+          } else if (typeof job.jobTags === "string") {
+            tags = job.jobTags.split(",").map((t) => t.trim());
           }
 
-          // also extract skills from job title and description
-          const titleWords = (job.jobTitle || "").toLowerCase().split(/\s+/);
           const knownSkills = [
-            "react", "node", "python", "java", "javascript",
-            "typescript", "mongodb", "sql", "docker", "aws",
-            "vue", "angular", "express", "django", "php",
-            "css", "html", "graphql", "redis", "kubernetes"
+            "react","node","python","java","javascript",
+            "typescript","mongodb","sql","docker","aws",
+            "vue","angular","express","django","php",
+            "css","html","graphql","redis","kubernetes",
           ];
 
-          const titleSkills = knownSkills.filter(skill =>
-            titleWords.some(word => word.includes(skill))
+          const titleWords = (job.jobTitle || "")
+            .toLowerCase()
+            .split(/\s+/);
+
+          const titleSkills = knownSkills.filter((skill) =>
+            titleWords.some((word) => word.includes(skill))
           );
 
-          // merge tags with title skills
           const allTags = [...new Set([...tags, ...titleSkills])];
 
-          console.log(`Job: ${job.jobTitle} | Tags: ${allTags}`);
-
-          const { matchScore, missingSkills } = calculateMatch(
-  userSkills,
-  allTags,
-  job.title || "",
-  job.description || ""
-);
+          const matchData = calculateMatch(
+            userSkills,
+            allTags,
+            job.jobTitle,
+            job.jobDescription
+          );
 
           return {
             title: job.jobTitle || "No Title",
             company: job.companyName || "Unknown",
             location: job.jobGeo || "Remote",
             tags: allTags,
-            matchScore,
-            missingSkills,
-            apply_link: job.url || "https://jobicy.com"
+            ...matchData,
+            apply_link: job.url,
           };
         });
-
-        console.log("Jobicy jobs fetched:", jobs.length);
       }
     } catch (err) {
       console.log("Jobicy failed:", err.message);
     }
 
-    // Fallback to Arbeitnow
+    /* ----------- FALLBACK: ARBEITNOW ----------- */
     if (jobs.length === 0) {
       try {
         const response = await axios.get(
           "https://www.arbeitnow.com/api/job-board-api",
           {
             headers: { "User-Agent": "Mozilla/5.0" },
-            timeout: 15000
+            timeout: 15000,
           }
         );
 
-        if (response.data && Array.isArray(response.data.data)) {
-          jobs = response.data.data.slice(0, 50).map(job => {
-            let tags = [];
+        if (response.data?.data) {
+          jobs = response.data.data.slice(0, 50).map((job) => {
+            let tags = Array.isArray(job.tags)
+              ? job.tags
+              : [];
 
-            if (Array.isArray(job.tags)) {
-              tags = job.tags;
-            } else if (typeof job.tags === "string" && job.tags) {
-              tags = job.tags.split(",").map(t => t.trim()).filter(Boolean);
-            }
-
-            const titleWords = (job.title || "").toLowerCase().split(/\s+/);
             const knownSkills = [
-              "react", "node", "python", "java", "javascript",
-              "typescript", "mongodb", "sql", "docker", "aws",
-              "vue", "angular", "express", "django", "php",
-              "css", "html", "graphql", "redis", "kubernetes"
+              "react","node","python","java","javascript",
+              "typescript","mongodb","sql","docker","aws",
+              "vue","angular","express","django","php",
+              "css","html","graphql","redis","kubernetes",
             ];
 
-            const titleSkills = knownSkills.filter(skill =>
-              titleWords.some(word => word.includes(skill))
+            const titleWords = (job.title || "")
+              .toLowerCase()
+              .split(/\s+/);
+
+            const titleSkills = knownSkills.filter((skill) =>
+              titleWords.some((word) => word.includes(skill))
             );
 
             const allTags = [...new Set([...tags, ...titleSkills])];
 
-            console.log(`Job: ${job.title} | Tags: ${allTags}`);
-
-            const { matchScore, missingSkills } = calculateMatch(
-  userSkills,
-  allTags,
-  job.title || "",
-  job.description || ""
-);
+            const matchData = calculateMatch(
+              userSkills,
+              allTags,
+              job.title,
+              job.description
+            );
 
             return {
-              title: job.title || "No Title",
-              company: job.company_name || "Unknown",
-              location: job.location || "Remote",
+              title: job.title,
+              company: job.company_name,
+              location: job.location,
               tags: allTags,
-              matchScore,
-              missingSkills,
-              apply_link: job.url || "https://arbeitnow.com"
+              ...matchData,
+              apply_link: job.url,
             };
           });
-
-          console.log("Arbeitnow jobs fetched:", jobs.length);
         }
       } catch (err) {
         console.log("Arbeitnow failed:", err.message);
@@ -192,19 +273,22 @@ export const fetchRemoteJobs = async (req, res) => {
     }
 
     if (jobs.length === 0) {
-      return res.status(500).json({ message: "All job APIs failed" });
+      return res.status(500).json({
+        message: "All job APIs failed",
+      });
     }
 
-    // Sort by best match
+    /* ----------- SORT ----------- */
     jobs.sort((a, b) => b.matchScore - a.matchScore);
 
     res.json(jobs);
 
   } catch (error) {
-    console.error("Job fetch error:", error.message);
+    console.error("Error:", error.message);
+
     res.status(500).json({
       message: "Failed to fetch jobs",
-      error: error.message
+      error: error.message,
     });
   }
 };
