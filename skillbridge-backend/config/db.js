@@ -2,10 +2,7 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(
-      "mongodb+srv://skillbridge:SkillBridge123@cluster0.lf9mk0q.mongodb.net/skillbridge"
-    );
-
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB Connected");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error.message);
