@@ -1,9 +1,10 @@
 import express from "express";
 import upload from "../middleware/upload.js";
+import protect from "../middleware/authMiddleware.js";
 import { uploadResume } from "../controllers/resumeController.js";
 
 const router = express.Router();
 
-router.post("/upload", upload.single("resume"), uploadResume);
+router.post("/upload", protect, upload.single("resume"), uploadResume);
 
 export default router;

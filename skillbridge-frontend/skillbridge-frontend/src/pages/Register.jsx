@@ -1,6 +1,44 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import API_URL from "../config";
 
 const Register = () => {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+      alert("Server error. Try again.");
+    }
+
+    setLoading(false);
+  };
+
   return (
     <div className="flex justify-center items-center min-h-[80vh] px-4">
       <div className="
@@ -17,11 +55,13 @@ const Register = () => {
           Create Account
         </h2>
 
-        <form className="space-y-5">
-
+        <form onSubmit={handleRegister} className="space-y-5">
           <input
             type="text"
             placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
             className="
               w-full p-3 rounded-lg border
               bg-white dark:bg-gray-800
@@ -35,6 +75,9 @@ const Register = () => {
           <input
             type="email"
             placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
             className="
               w-full p-3 rounded-lg border
               bg-white dark:bg-gray-800
@@ -48,6 +91,10 @@ const Register = () => {
           <input
             type="password"
             placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
             className="
               w-full p-3 rounded-lg border
               bg-white dark:bg-gray-800
@@ -59,13 +106,16 @@ const Register = () => {
           />
 
           <button
+            type="submit"
+            disabled={loading}
             className="
               w-full py-3 rounded-lg font-semibold text-white
               bg-purple-600 hover:bg-purple-700
               transition transform hover:scale-[1.02]
+              disabled:opacity-60
             "
           >
-            Register
+            {loading ? "Creating account..." : "Register"}
           </button>
         </form>
 

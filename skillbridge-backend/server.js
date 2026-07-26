@@ -1,19 +1,26 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+
+dotenv.config();
+
+if (!process.env.JWT_SECRET) {
+  console.error("❌ Missing JWT_SECRET in environment variables");
+  process.exit(1);
+}
+
+console.log("JWT_SECRET loaded:", process.env.JWT_SECRET ? "yes" : "NO - MISSING");
+
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
 
-dotenv.config();
-
 const app = express();
 
-// ✅ CORS FIX — must be before all routes
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
+
   const allowedOrigins = [
     "http://localhost:5173",
     "https://skillbridge-frontend-psi.vercel.app"
