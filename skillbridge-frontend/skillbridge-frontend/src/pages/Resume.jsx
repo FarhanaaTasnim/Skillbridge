@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API_URL from "../config";
+
 const Resume = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -8,7 +9,6 @@ const Resume = () => {
 
   const navigate = useNavigate();
 
-  // Check if skills already exist
   useEffect(() => {
     const skills = localStorage.getItem("skills");
 
@@ -25,6 +25,14 @@ const Resume = () => {
       return;
     }
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You must be logged in to upload a resume.");
+      navigate("/login");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("resume", file);
 
@@ -33,14 +41,23 @@ const Resume = () => {
 
       const res = await fetch(`${API_URL}/api/resume/upload`, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
+
+      if (res.status === 401) {
+        localStorage.clear();
+        alert("Session expired. Please log in again.");
+        navigate("/login");
+        return;
+      }
 
       const data = await res.json();
 
       console.log("Backend response:", data);
 
-      // ✅ SAFE SAVE
       if (data.skills && Array.isArray(data.skills)) {
         localStorage.setItem("skills", JSON.stringify(data.skills));
         setHasResume(true);

@@ -16,6 +16,13 @@ const Jobs = () => {
       setLoading(true);
       setError(null);
 
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       const skillsRaw = localStorage.getItem("skills");
 
       if (!skillsRaw || skillsRaw === "undefined" || skillsRaw === "null") {
@@ -38,9 +45,19 @@ const Jobs = () => {
 
       const res = await fetch(`${API_URL}/api/jobs/remote`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ skills }),
       });
+
+      if (res.status === 401) {
+        localStorage.clear();
+        alert("Session expired. Please log in again.");
+        navigate("/login");
+        return;
+      }
 
       if (!res.ok) {
         throw new Error("Failed to fetch jobs");
@@ -67,7 +84,6 @@ const Jobs = () => {
     fetchJobs();
   }, []);
 
-  /* -------- SORTING -------- */
   useEffect(() => {
     let sorted = [...jobs];
 
@@ -80,7 +96,6 @@ const Jobs = () => {
     setFilteredJobs(sorted);
   }, [sortType, jobs]);
 
-  /* -------- LOADING -------- */
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -92,7 +107,6 @@ const Jobs = () => {
     );
   }
 
-  /* -------- ERROR -------- */
   if (error) {
     return (
       <div className="text-center mt-20">
@@ -107,11 +121,10 @@ const Jobs = () => {
     );
   }
 
-  /* -------- EMPTY -------- */
   if (filteredJobs.length === 0) {
     return (
       <div className="text-center mt-20">
-        <p>No jobs found 😢</p>
+        <p>No jobs found </p>
         <button
           onClick={() => navigate("/resume")}
           className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-full"
@@ -124,8 +137,6 @@ const Jobs = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      
-      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Recommended Jobs</h1>
 
@@ -139,7 +150,6 @@ const Jobs = () => {
         </select>
       </div>
 
-      {/* GRID */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredJobs.map((job, index) => (
           <JobCard key={index} job={job} />
@@ -149,7 +159,6 @@ const Jobs = () => {
   );
 };
 
-/* -------- JOB CARD -------- */
 const JobCard = ({ job }) => {
   const matchColor =
     job.matchScore >= 70
@@ -160,7 +169,6 @@ const JobCard = ({ job }) => {
 
   return (
     <div className="p-5 rounded-xl shadow bg-white dark:bg-gray-800 flex flex-col justify-between">
-      
       <div>
         <h2 className="font-bold text-lg">{job.title}</h2>
         <p className="text-sm text-gray-500">{job.company}</p>
@@ -169,19 +177,16 @@ const JobCard = ({ job }) => {
           {job.matchScore}% Match
         </p>
 
-        {/* MATCH REASON */}
         <p className="text-xs text-gray-400 mt-1">
           {job.matchReason}
         </p>
 
-        {/* SKILL GAP */}
         {job.skillGapAnalysis?.critical?.length > 0 && (
           <p className="text-xs text-red-400 mt-2">
             Missing: {job.skillGapAnalysis.critical.join(", ")}
           </p>
         )}
 
-        {/* SUGGESTION */}
         {job.skillGapAnalysis?.suggestion && (
           <p className="text-xs text-blue-400 mt-1">
             💡 {job.skillGapAnalysis.suggestion}
@@ -189,12 +194,7 @@ const JobCard = ({ job }) => {
         )}
       </div>
 
-      <a
-        href={job.apply_link}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-4 bg-purple-600 text-white text-center py-2 rounded"
-      >
+      <a href={job.apply_link} target="_blank" rel="noreferrer" className="mt-4 bg-purple-600 text-white text-center py-2 rounded">
         Apply
       </a>
     </div>
