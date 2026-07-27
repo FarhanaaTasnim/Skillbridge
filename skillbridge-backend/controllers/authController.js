@@ -8,12 +8,7 @@ const signToken = (user) =>
     expiresIn: JWT_EXPIRES_IN,
   });
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// ...
-if (!EMAIL_RE.test(email)) {
-  return res
-    .status(400)
-    .json({message: "Please provide a valid email address"});
-}
+
 export const registerUser = async (req, res) => {
   try {
     const {name, email, password} = req.body;
@@ -22,6 +17,12 @@ export const registerUser = async (req, res) => {
       return res
         .status(400)
         .json({message: "Name, email and password are required"});
+    }
+
+    if (!EMAIL_RE.test(email)) {
+      return res
+        .status(400)
+        .json({message: "Please provide a valid email address"});
     }
 
     if (password.length < 6) {
