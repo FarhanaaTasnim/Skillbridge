@@ -1,12 +1,5 @@
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
-
-// Magic-byte check: real PDFs begin with "%PDF-" regardless of
-// what extension or mimetype the client claims.
-const isActuallyPDF = (buffer) => {
-  if (!buffer || buffer.length < 5) return false;
-  const header = buffer.subarray(0, 5).toString("ascii");
-  return header === "%PDF-";
-};
+import { extractSkillsFromText } from "../utils/skills.js";
 
 export const uploadResume = async (req, res) => {
   try {
@@ -14,58 +7,40 @@ export const uploadResume = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Belt-and-suspenders: even though Multer's fileFilter should have
-    // already rejected non-PDFs, verify the actual file content here too.
-    if (!isActuallyPDF(req.file.buffer)) {
-      return res.status(400).json({
-        message: "Invalid file. Please upload a valid PDF resume.",
-      });
+    // basic validation (see item 5 below)
+    if (req.file.mimetype !== "application/pdf") {
+      return res.status(400).json({ message: "Only PDF files are supported" });
     }
 
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(req.file.buffer),
     });
-
     const pdf = await loadingTask.promise;
 
     let text = "";
-
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
       text += content.items.map((item) => item.str).join(" ");
     }
 
-    text = text.toLowerCase();
+    const detectedSkills = extractSkillsFromText(text);
 
-    const skillDatabase = [
-      "javascript",
-      "react",
-      "node",
-      "mongodb",
-      "express",
-      "python",
-      "java",
-      "sql",
-      "typescript",
-      "next.js",
-      "docker",
-      "aws",
-      "machine learning",
-      "data science",
-    ];
-
-    const detectedSkills = skillDatabase.filter((skill) => text.includes(skill));
+    if (detectedSkills.length === 0) {
+      return res.status(422).json({
+        message: "No recognizable skills found in this resume",
+        skills: [],
+      });
+    }
 
     res.json({
       message: "Resume processed successfully",
-      skills: detectedSkills.map((s) => s.toLowerCase()),
+      skills: detectedSkills,
     });
   } catch (error) {
-    console.error("Resume parsing error:", error.message);
-
+    console.error("Resume parsing error:", error);
     res.status(500).json({
-      message: "Resume parsing failed. Please make sure the file is a valid, unencrypted PDF.",
+      message: "Resume parsing failed",
       error: error.message,
     });
   }

@@ -1,13 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import API_URL from "../config";
-const Dashboard = () => {
+import { useAuth } from "../context/AuthContext.jsx";
 
+const Dashboard = () => {
   const navigate = useNavigate();
+  const { hasSkills } = useAuth();
 
   const handleJobsClick = () => {
-    const skills = localStorage.getItem("skills");
-
-    if (!skills) {
+    if (!hasSkills) {
       alert("Please upload your resume first.");
       navigate("/resume");
     } else {

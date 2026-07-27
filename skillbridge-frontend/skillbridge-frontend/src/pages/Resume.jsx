@@ -1,21 +1,16 @@
-import {useState, useEffect} from "react";
-import {useNavigate} from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API_URL from "../config";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const Resume = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [hasResume, setHasResume] = useState(false);
 
   const navigate = useNavigate();
+  const { token, skills, updateSkills, logout } = useAuth();
 
-  useEffect(() => {
-    const skills = localStorage.getItem("skills");
-
-    if (skills && skills !== "undefined") {
-      setHasResume(true);
-    }
-  }, []);
+  const hasResume = skills.length > 0;
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -24,8 +19,6 @@ const Resume = () => {
       alert("Please select a resume file.");
       return;
     }
-
-    const token = localStorage.getItem("token");
 
     if (!token) {
       alert("You must be logged in to upload a resume.");
@@ -48,7 +41,7 @@ const Resume = () => {
       });
 
       if (res.status === 401) {
-        localStorage.clear();
+        logout();
         alert("Session expired. Please log in again.");
         navigate("/login");
         return;
@@ -58,14 +51,14 @@ const Resume = () => {
 
       console.log("Backend response:", data);
 
-      if (data.skills && Array.isArray(data.skills)) {
-        localStorage.setItem("skills", JSON.stringify(data.skills));
-        setHasResume(true);
+      if (data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
+        updateSkills(data.skills);
         alert("✅ Resume uploaded & skills saved!");
         navigate("/jobs");
       } else {
-        alert("❌ No skills detected. Try another resume.");
+        alert(data.message || "❌ No skills detected. Try another resume.");
       }
+
     } catch (error) {
       console.error("Upload error:", error);
       alert("Server error. Try again.");
@@ -77,7 +70,10 @@ const Resume = () => {
   return (
     <div className="flex justify-center items-center min-h-[80vh] px-4">
       <div className="w-full max-w-md p-8 rounded-2xl shadow-xl bg-white dark:bg-gray-900">
-        <h2 className="text-3xl font-bold text-center mb-6">Upload Resume</h2>
+
+        <h2 className="text-3xl font-bold text-center mb-6">
+          Upload Resume
+        </h2>
 
         {hasResume && (
           <p className="text-green-600 text-center mb-4">
@@ -86,39 +82,33 @@ const Resume = () => {
         )}
 
         <form onSubmit={handleUpload} className="space-y-5">
+
           <input
             type="file"
-            accept=".pdf,application/pdf"
-            onChange={(e) => {
-              const selected = e.target.files[0];
-              if (selected && selected.type !== "application/pdf") {
-                alert("Please select a PDF file.");
-                e.target.value = ""; // reset the input
-                return;
-              }
-              setFile(selected);
-            }}
+            accept=".pdf"
+            onChange={(e) => setFile(e.target.files[0])}
             className="w-full p-3 border rounded-lg"
           />
 
           <button
             type="submit"
-            className="w-full py-3 bg-purple-600 text-white rounded-lg">
-            {loading
-              ? "Processing..."
-              : hasResume
-                ? "Update Resume"
-                : "Upload Resume"}
+            disabled={loading}
+            className="w-full py-3 bg-purple-600 text-white rounded-lg disabled:opacity-60"
+          >
+            {loading ? "Processing..." : hasResume ? "Update Resume" : "Upload Resume"}
           </button>
+
         </form>
 
         {hasResume && (
           <button
             onClick={() => navigate("/jobs")}
-            className="mt-4 w-full py-2 border border-purple-600 text-purple-600 rounded-lg">
+            className="mt-4 w-full py-2 border border-purple-600 text-purple-600 rounded-lg"
+          >
             Skip → View Jobs
           </button>
         )}
+
       </div>
     </div>
   );
