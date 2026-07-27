@@ -17,7 +17,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4">
 
-      <h1 className="text-3xl font-bold mb-10">
+      <h1 className="text-3xl font-bold mb-10 text-gray-800 dark:text-gray-100">
         Dashboard
       </h1>
 
@@ -26,12 +26,12 @@ const Dashboard = () => {
         {/* Upload Resume */}
         <div
           onClick={() => navigate("/resume")}
-          className="cursor-pointer p-6 rounded-2xl shadow-lg bg-white hover:scale-105 transition text-center"
+          className="cursor-pointer p-6 rounded-2xl shadow-lg bg-white dark:bg-gray-800 border border-transparent dark:border-gray-700 hover:scale-105 transition text-center"
         >
-          <h2 className="text-xl font-semibold mb-2">
+          <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-100">
             📄 Upload Resume
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Upload or update your resume
           </p>
         </div>
@@ -39,12 +39,12 @@ const Dashboard = () => {
         {/* View Jobs */}
         <div
           onClick={handleJobsClick}
-          className="cursor-pointer p-6 rounded-2xl shadow-lg bg-white hover:scale-105 transition text-center"
+          className="cursor-pointer p-6 rounded-2xl shadow-lg bg-white dark:bg-gray-800 border border-transparent dark:border-gray-700 hover:scale-105 transition text-center"
         >
-          <h2 className="text-xl font-semibold mb-2">
+          <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-100">
             💼 View Recommended Jobs
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Jobs based on your skills
           </p>
         </div>
@@ -52,12 +52,12 @@ const Dashboard = () => {
         {/* Profile */}
         <div
           onClick={() => navigate("/profile")}
-          className="cursor-pointer p-6 rounded-2xl shadow-lg bg-white hover:scale-105 transition text-center"
+          className="cursor-pointer p-6 rounded-2xl shadow-lg bg-white dark:bg-gray-800 border border-transparent dark:border-gray-700 hover:scale-105 transition text-center"
         >
-          <h2 className="text-xl font-semibold mb-2">
+          <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-100">
             👤 Profile
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             View your details
           </p>
         </div>
