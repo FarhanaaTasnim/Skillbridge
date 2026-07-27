@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import {useState, useEffect} from "react";
+import {useNavigate} from "react-router-dom";
 import API_URL from "../config";
 
 const Resume = () => {
@@ -66,7 +66,6 @@ const Resume = () => {
       } else {
         alert("❌ No skills detected. Try another resume.");
       }
-
     } catch (error) {
       console.error("Upload error:", error);
       alert("Server error. Try again.");
@@ -78,10 +77,7 @@ const Resume = () => {
   return (
     <div className="flex justify-center items-center min-h-[80vh] px-4">
       <div className="w-full max-w-md p-8 rounded-2xl shadow-xl bg-white dark:bg-gray-900">
-
-        <h2 className="text-3xl font-bold text-center mb-6">
-          Upload Resume
-        </h2>
+        <h2 className="text-3xl font-bold text-center mb-6">Upload Resume</h2>
 
         {hasResume && (
           <p className="text-green-600 text-center mb-4">
@@ -90,32 +86,39 @@ const Resume = () => {
         )}
 
         <form onSubmit={handleUpload} className="space-y-5">
-
           <input
             type="file"
-            accept=".pdf"
-            onChange={(e) => setFile(e.target.files[0])}
+            accept=".pdf,application/pdf"
+            onChange={(e) => {
+              const selected = e.target.files[0];
+              if (selected && selected.type !== "application/pdf") {
+                alert("Please select a PDF file.");
+                e.target.value = ""; // reset the input
+                return;
+              }
+              setFile(selected);
+            }}
             className="w-full p-3 border rounded-lg"
           />
 
           <button
             type="submit"
-            className="w-full py-3 bg-purple-600 text-white rounded-lg"
-          >
-            {loading ? "Processing..." : hasResume ? "Update Resume" : "Upload Resume"}
+            className="w-full py-3 bg-purple-600 text-white rounded-lg">
+            {loading
+              ? "Processing..."
+              : hasResume
+                ? "Update Resume"
+                : "Upload Resume"}
           </button>
-
         </form>
 
         {hasResume && (
           <button
             onClick={() => navigate("/jobs")}
-            className="mt-4 w-full py-2 border border-purple-600 text-purple-600 rounded-lg"
-          >
+            className="mt-4 w-full py-2 border border-purple-600 text-purple-600 rounded-lg">
             Skip → View Jobs
           </button>
         )}
-
       </div>
     </div>
   );
