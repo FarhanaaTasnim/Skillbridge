@@ -29,8 +29,8 @@ const Hero = () => {
           text-gray-700 dark:text-gray-300
         "
       >
-        Our AI scans Bdjobs, LinkedIn, and other top platforms  
-        and shows you jobs ranked by match percentage —  
+        Our AI scans live remote listings from Jobicy and Arbeitnow 
+        ranks every job by how well it matches your skills —  
         so you apply smarter, not harder.
       </motion.p>
 
