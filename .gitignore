@@ -2,3 +2,5 @@
 .env
 # Ignore Node.js modules folder
 node_modules/
+skillbridge-backend/scripts/benchmark-results/*.json
+!skillbridge-backend/scripts/benchmark-results/sample-run.json

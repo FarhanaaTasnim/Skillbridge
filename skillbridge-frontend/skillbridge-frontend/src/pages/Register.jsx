@@ -29,6 +29,7 @@ const Register = () => {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      window.dispatchEvent(new Event("authChange"));
 
       navigate("/dashboard");
     } catch (error) {
