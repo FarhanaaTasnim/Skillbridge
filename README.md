@@ -245,10 +245,14 @@ Test set: 62 real job/resume pairs, built from 3 tailored versions of the same r
 
 ---
 
+## 🔒 Security Notes
+
+- MongoDB credentials are managed via environment variables and excluded from version control.
+
+---
+
 ## 🗺 Roadmap
 
-- Persist real user accounts and hashed credentials ✅ *(done — bcrypt + JWT)*
-- Move MongoDB credentials to environment variables in all environments ✅ *(done)*
 - Expand the skills taxonomy and support fuzzy/synonym matching
 - Improve recall on senior engineering titles (Senior/Staff/Principal Engineer) when a job posting has no structured tags — identified as the algorithm's main weak spot via `matching-eval.cjs` (see [Performance](#-performance))
 - Add saved jobs and application tracking
