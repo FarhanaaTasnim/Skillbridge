@@ -4,3 +4,4 @@
 node_modules/
 skillbridge-backend/scripts/benchmark-results/*.json
 !skillbridge-backend/scripts/benchmark-results/sample-run.json
+eval_data/
