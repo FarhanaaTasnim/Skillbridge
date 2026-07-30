@@ -68,16 +68,24 @@ const Navbar = ({ darkMode, setDarkMode }) => {
             </NavLink>
 
             {isLoggedIn ? (
-              <button
-                onClick={logout}
-                className="
-                  px-4 py-2 rounded-full font-semibold text-white
-                  bg-purple-600 hover:bg-purple-700
-                  shadow-lg transition transform hover:scale-105
-                "
-              >
-                Logout
-              </button>
+              <>
+                <NavLink to="/dashboard" className={linkStyle}>
+                  Dashboard
+                </NavLink>
+                <NavLink to="/profile" className={linkStyle}>
+                  Profile
+                </NavLink>
+                <button
+                  onClick={logout}
+                  className="
+                    px-4 py-2 rounded-full font-semibold text-white
+                    bg-purple-600 hover:bg-purple-700
+                    shadow-lg transition transform hover:scale-105
+                  "
+                >
+                  Logout
+                </button>
+              </>
             ) : (
               <>
                 <NavLink to="/login" className={linkStyle}>
@@ -135,16 +143,24 @@ const Navbar = ({ darkMode, setDarkMode }) => {
             </NavLink>
 
             {isLoggedIn ? (
-              <button
-                onClick={logout}
-                className="
-                  w-full px-4 py-2 rounded-full font-semibold text-white
-                  bg-purple-600 hover:bg-purple-700
-                  shadow-lg transition
-                "
-              >
-                Logout
-              </button>
+              <>
+                <NavLink to="/dashboard" className={linkStyle}>
+                  Dashboard
+                </NavLink>
+                <NavLink to="/profile" className={linkStyle}>
+                  Profile
+                </NavLink>
+                <button
+                  onClick={logout}
+                  className="
+                    w-full px-4 py-2 rounded-full font-semibold text-white
+                    bg-purple-600 hover:bg-purple-700
+                    shadow-lg transition
+                  "
+                >
+                  Logout
+                </button>
+              </>
             ) : (
               <>
                 <NavLink to="/login" className={linkStyle}>
