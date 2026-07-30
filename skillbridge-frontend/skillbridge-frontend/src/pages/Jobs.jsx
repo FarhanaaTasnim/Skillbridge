@@ -98,7 +98,7 @@ const Jobs = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4">
         <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-gray-600 dark:text-gray-400 text-center">
           Finding your best matches...
@@ -109,7 +109,7 @@ const Jobs = () => {
 
   if (error) {
     return (
-      <div className="text-center mt-20">
+      <div className="text-center mt-20 px-4">
         <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
         <button
           onClick={fetchJobs}
@@ -123,7 +123,7 @@ const Jobs = () => {
 
   if (filteredJobs.length === 0) {
     return (
-      <div className="text-center mt-20">
+      <div className="text-center mt-20 px-4">
         <p className="text-gray-700 dark:text-gray-300">No jobs found </p>
         <button
           onClick={() => navigate("/resume")}
@@ -136,21 +136,21 @@ const Jobs = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Recommended Jobs</h1>
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">Recommended Jobs</h1>
 
         <select
           value={sortType}
           onChange={(e) => setSortType(e.target.value)}
-          className="border px-3 py-1 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 outline-none transition"
+          className="w-full sm:w-auto border px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 outline-none transition"
         >
           <option value="high">Best Match</option>
           <option value="low">Lowest Match</option>
         </select>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredJobs.map((job, index) => (
           <JobCard key={index} job={job} />
         ))}

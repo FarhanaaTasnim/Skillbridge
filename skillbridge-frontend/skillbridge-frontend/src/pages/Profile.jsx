@@ -25,25 +25,25 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-3xl mx-auto px-4 py-6 sm:py-10">
 
       {/* Header Card */}
       <div className="
         bg-white dark:bg-gray-800
         border border-gray-100 dark:border-gray-700
-        rounded-2xl p-8 shadow-md mb-6
+        rounded-2xl p-6 sm:p-8 shadow-md mb-6
         text-center
       ">
         {/* Avatar */}
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold mx-auto mb-4">
           {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
           {user?.name || "User"}
         </h1>
 
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 break-words">
           {user?.email || "No email"}
         </p>
 
@@ -56,7 +56,7 @@ const Profile = () => {
       <div className="
         bg-white dark:bg-gray-800
         border border-gray-100 dark:border-gray-700
-        rounded-2xl p-6 shadow-md mb-6
+        rounded-2xl p-5 sm:p-6 shadow-md mb-6
       ">
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">
           Account Details
@@ -64,28 +64,28 @@ const Profile = () => {
 
         <div className="space-y-4">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50">
-            <span className="text-xl">📧</span>
-            <div>
+            <span className="text-xl shrink-0">📧</span>
+            <div className="min-w-0">
               <p className="text-xs text-gray-400 dark:text-gray-500">Email</p>
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 break-words">
                 {user?.email || "Not available"}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50">
-            <span className="text-xl">👤</span>
-            <div>
+            <span className="text-xl shrink-0">👤</span>
+            <div className="min-w-0">
               <p className="text-xs text-gray-400 dark:text-gray-500">Name</p>
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 break-words">
                 {user?.name || "Not set"}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50">
-            <span className="text-xl">📄</span>
-            <div>
+            <span className="text-xl shrink-0">📄</span>
+            <div className="min-w-0">
               <p className="text-xs text-gray-400 dark:text-gray-500">Resume Status</p>
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                 {skills.length > 0 ? "✅ Uploaded" : "❌ Not uploaded"}
@@ -99,7 +99,7 @@ const Profile = () => {
       <div className="
         bg-white dark:bg-gray-800
         border border-gray-100 dark:border-gray-700
-        rounded-2xl p-6 shadow-md mb-6
+        rounded-2xl p-5 sm:p-6 shadow-md mb-6
       ">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -142,7 +142,7 @@ const Profile = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <button
           onClick={() => navigate("/resume")}
           className="
